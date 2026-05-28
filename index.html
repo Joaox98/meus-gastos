@@ -65,7 +65,6 @@
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfxFIe1vpcvnJcX5oqC1DyAaOVw9YnvLwFqELYvDBXAKoIWWRMve_KP0FysgkEUL1Wpg/exec";
 
-        // Coloca a data de hoje automaticamente
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
 
         document.getElementById('gastoForm').addEventListener('submit', async (e) => {
@@ -74,42 +73,41 @@
             const btn = document.getElementById('btnEnviar');
             const statusDiv = document.getElementById('status');
             
-            const categoria = document.getElementById('categoria').value;
-            const valor = parseFloat(document.getElementById('valor').value);
+            const categoria = encodeURIComponent(document.getElementById('categoria').value);
+            const valor = document.getElementById('valor').value;
             const data = document.getElementById('data').value;
-            const motivo = document.getElementById('motivo').value || "";
-            const metodo = document.getElementById('metodo').value || "";
-            const token = document.getElementById('token').value; // Pega a senha digitada pelo usuário
+            const motivo = encodeURIComponent(document.getElementById('motivo').value || "");
+            const metodo = encodeURIComponent(document.getElementById('metodo').value || "");
+            const token = encodeURIComponent(document.getElementById('token').value);
 
             btn.disabled = true;
             btn.innerText = "Enviando...";
             statusDiv.classList.add('hidden');
 
-            try {
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        token, // Envia o que foi digitado na tela
-                        categoria, 
-                        valor, 
-                        data, 
-                        motivo, 
-                        metodo 
-                    })
-                });
+            // Monta a URL com os parâmetros de forma limpa para evitar bloqueio de CORS
+            const urlFinal = `${WEB_APP_URL}?token=${token}&categoria=${categoria}&valor=${valor}&data=${data}&motivo=${motivo}&metodo=${metodo}`;
 
-                statusDiv.innerText = "Gasto enviado! Verifique na planilha se a senha estava correta. 🎉";
-                statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-emerald-500/20 text-emerald-400";
-                statusDiv.classList.remove('hidden');
-                
-                // Reseta o formulário, mas limpa o campo de senha para o próximo envio
-                document.getElementById('gastoForm').reset();
-                document.getElementById('data').value = new Date().toISOString().split('T')[0];
+            try {
+                // Enviando como GET puro, o navegador consegue ler se retornou sucesso ou erro!
+                const response = await fetch(urlFinal);
+                const resultado = await response.json();
+
+                if (resultado.status === "sucesso") {
+                    statusDiv.innerText = "Gasto lançado com sucesso! 🎉";
+                    statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-emerald-500/20 text-emerald-400";
+                    statusDiv.classList.remove('hidden');
+                    
+                    document.getElementById('gastoForm').reset();
+                    document.getElementById('data').value = new Date().toISOString().split('T')[0];
+                } else {
+                    // Aqui pega o erro caso a senha digitada esteja errada!
+                    statusDiv.innerText = `Erro: ${resultado.message} ❌`;
+                    statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-red-500/20 text-red-400";
+                    statusDiv.classList.remove('hidden');
+                }
 
             } catch (error) {
-                statusDiv.innerText = "Erro ao conectar com o servidor.";
+                statusDiv.innerText = "Erro na conexão com o servidor de dados.";
                 statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-red-500/20 text-red-400";
                 statusDiv.classList.remove('hidden');
                 console.error(error);
