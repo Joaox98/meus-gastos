@@ -8,32 +8,54 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-center p-4">
 
-    <div class="max-w-md w-full mx-auto bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
+    <div class="max-w-md w-full mx-auto bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700 my-4">
         <h2 class="text-2xl font-bold text-center mb-6 text-emerald-400">Novo Gasto Finanças</h2>
         
-        <form id="gastoForm" class="space-y-5">
+        <form id="gastoForm" class="space-y-4">
+            <!-- Categoria (Coluna P) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Categoria</label>
                 <select id="categoria" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
-                    <option value="" disabled selected>Selecione a categoria...</option>
+                    <option value="" disabled selected>Selecione...</option>
                     <option value="Casa">Casa</option>
                     <option value="Lazer">Lazer</option>
                     <option value="Roupas">Roupas</option>
-                    <option value="Bobeirinhas V">Bobeirinhas V</option>
-                    <option value="Bobeirinhas J">Bobeirinhas J</option>
                     <option value="Nesco">Nesco</option>
                     <option value="Gasolina / Óleo">Gasolina / Óleo</option>
                     <option value="Compras do Mês">Compras do Mês</option>
                     <option value="Extras">Extras</option>
+                    <option value="Bobeirinhas V">Bobeirinhas V</option>
+                    <option value="Bobeirinhas J">Bobeirinhas J</option>
+                    <option value="PLR">PLR</option>
                 </select>
             </div>
 
+            <!-- Valor (Coluna Q) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Valor (R$)</label>
                 <input type="number" id="valor" step="0.01" required placeholder="0,00" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 text-lg h-12">
             </div>
 
-            <button type="submit" id="btnEnviar" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-3 rounded-lg transition duration-200 text-lg shadow-lg shadow-emerald-900/20 active:scale-[0.98]">
+            <!-- Data (Coluna R) -->
+            <div>
+                <label class="block text-sm font-medium mb-1 text-slate-300">Data</label>
+                <input type="date" id="data" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
+            </div>
+
+            <!-- Motivo (Coluna S) -->
+            <div>
+                <label class="block text-sm font-medium mb-1 text-slate-300">Motivo (Opcional)</label>
+                <input type="text" id="motivo" placeholder="Ex: Compras no mercado X" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
+            </div>
+
+            <!-- Método (Coluna T) -->
+            <div>
+                <label class="block text-sm font-medium mb-1 text-slate-300">Método de Pagamento (Opcional)</label>
+                <input type="text" id="metodo" placeholder="Ex: Pix, Crédito Nubank" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
+            </div>
+
+            <!-- Botão de Enviar -->
+            <button type="submit" id="btnEnviar" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-3 rounded-lg transition duration-200 text-lg shadow-lg shadow-emerald-900/20 active:scale-[0.98] mt-2">
                 Lançar Gasto
             </button>
         </form>
@@ -43,41 +65,52 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfxFIe1vpcvnJcX5oqC1DyAaOVw9YnvLwFqELYvDBXAKoIWWRMve_KP0FysgkEUL1Wpg/exec";
+        const TOKEN_SEGURANCA = "Nesco2824";
+
+        // Coloca a data de hoje automaticamente no campo correspondente ao carregar a página
+        document.getElementById('data').value = new Date().toISOString().split('T')[0];
 
         document.getElementById('gastoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const btn = document.getElementById('btnEnviar');
             const statusDiv = document.getElementById('status');
+            
             const categoria = document.getElementById('categoria').value;
             const valor = parseFloat(document.getElementById('valor').value);
+            const data = document.getElementById('data').value;
+            const motivo = document.getElementById('motivo').value || "";
+            const metodo = document.getElementById('metodo').value || "";
 
-            // Mudança visual de "Enviando..."
             btn.disabled = true;
             btn.innerText = "Enviando...";
             statusDiv.classList.add('hidden');
 
             try {
-                // Envia os dados via POST para o Apps Script (no formato que o CORS aceita para Web Apps)
-                const response = await fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Necessário para evitar bloqueio de CORS no Google Apps Script
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ categoria, valor })
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        token: TOKEN_SEGURANCA, 
+                        categoria, 
+                        valor, 
+                        data, 
+                        motivo, 
+                        metodo 
+                    })
                 });
 
-                // Como usamos 'no-cors', o JS não lê a resposta, mas se não cair no catch, deu certo.
                 statusDiv.innerText = "Gasto lançado com sucesso! 🎉";
                 statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-emerald-500/20 text-emerald-400";
                 statusDiv.classList.remove('hidden');
                 
-                // Limpa o formulário
+                // Reseta o formulário e mantém a data de hoje ativa
                 document.getElementById('gastoForm').reset();
+                document.getElementById('data').value = new Date().toISOString().split('T')[0];
 
             } catch (error) {
-                statusDiv.innerText = "Erro ao lançar gasto. Tente novamente.";
+                statusDiv.innerText = "Erro ao lançar gasto. Verifique a conexão.";
                 statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-red-500/20 text-red-400";
                 statusDiv.classList.remove('hidden');
                 console.error(error);
