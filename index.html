@@ -12,7 +12,6 @@
         <h2 class="text-2xl font-bold text-center mb-6 text-emerald-400">Novo Gasto Finanças</h2>
         
         <form id="gastoForm" class="space-y-4">
-            <!-- Categoria (Coluna P) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Categoria</label>
                 <select id="categoria" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
@@ -30,31 +29,31 @@
                 </select>
             </div>
 
-            <!-- Valor (Coluna Q) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Valor (R$)</label>
                 <input type="number" id="valor" step="0.01" required placeholder="0,00" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 text-lg h-12">
             </div>
 
-            <!-- Data (Coluna R) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Data</label>
                 <input type="date" id="data" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
             </div>
 
-            <!-- Motivo (Coluna S) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Motivo (Opcional)</label>
                 <input type="text" id="motivo" placeholder="Ex: Compras no mercado X" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
             </div>
 
-            <!-- Método (Coluna T) -->
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-300">Método de Pagamento (Opcional)</label>
                 <input type="text" id="metodo" placeholder="Ex: Pix, Crédito Nubank" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
             </div>
 
-            <!-- Botão de Enviar -->
+            <div>
+                <label class="block text-sm font-medium mb-1 text-red-400">Chave de Acesso</label>
+                <input type="password" id="token" required placeholder="Digite a senha para autorizar" class="w-full bg-slate-700 border border-red-900/50 rounded-lg p-3 text-white focus:outline-none focus:border-red-500 h-12">
+            </div>
+
             <button type="submit" id="btnEnviar" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-3 rounded-lg transition duration-200 text-lg shadow-lg shadow-emerald-900/20 active:scale-[0.98] mt-2">
                 Lançar Gasto
             </button>
@@ -65,9 +64,8 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfxFIe1vpcvnJcX5oqC1DyAaOVw9YnvLwFqELYvDBXAKoIWWRMve_KP0FysgkEUL1Wpg/exec";
-        const TOKEN_SEGURANCA = "Nesco2824";
 
-        // Coloca a data de hoje automaticamente no campo correspondente ao carregar a página
+        // Coloca a data de hoje automaticamente
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
 
         document.getElementById('gastoForm').addEventListener('submit', async (e) => {
@@ -81,6 +79,7 @@
             const data = document.getElementById('data').value;
             const motivo = document.getElementById('motivo').value || "";
             const metodo = document.getElementById('metodo').value || "";
+            const token = document.getElementById('token').value; // Pega a senha digitada pelo usuário
 
             btn.disabled = true;
             btn.innerText = "Enviando...";
@@ -92,7 +91,7 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        token: TOKEN_SEGURANCA, 
+                        token, // Envia o que foi digitado na tela
                         categoria, 
                         valor, 
                         data, 
@@ -101,16 +100,16 @@
                     })
                 });
 
-                statusDiv.innerText = "Gasto lançado com sucesso! 🎉";
+                statusDiv.innerText = "Gasto enviado! Verifique na planilha se a senha estava correta. 🎉";
                 statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-emerald-500/20 text-emerald-400";
                 statusDiv.classList.remove('hidden');
                 
-                // Reseta o formulário e mantém a data de hoje ativa
+                // Reseta o formulário, mas limpa o campo de senha para o próximo envio
                 document.getElementById('gastoForm').reset();
                 document.getElementById('data').value = new Date().toISOString().split('T')[0];
 
             } catch (error) {
-                statusDiv.innerText = "Erro ao lançar gasto. Verifique a conexão.";
+                statusDiv.innerText = "Erro ao conectar com o servidor.";
                 statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-red-500/20 text-red-400";
                 statusDiv.classList.remove('hidden');
                 console.error(error);
