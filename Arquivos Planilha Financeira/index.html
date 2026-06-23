@@ -51,11 +51,6 @@
                 <input type="text" id="metodo" placeholder="Ex: Pix, Crédito Nubank" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-emerald-500 h-12">
             </div>
 
-            <div>
-                <label class="block text-sm font-medium mb-1 text-red-400">Chave de Acesso</label>
-                <input type="password" id="token" required placeholder="Digite a senha para autorizar" class="w-full bg-slate-700 border border-red-900/50 rounded-lg p-3 text-white focus:outline-none focus:border-red-500 h-12">
-            </div>
-
             <button type="submit" id="btnEnviar" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-3 rounded-lg transition duration-200 text-lg shadow-lg shadow-emerald-900/20 active:scale-[0.98] mt-2">
                 Lançar Gasto
             </button>
@@ -113,13 +108,12 @@
             const data = document.getElementById('data').value;
             const motivo = encodeURIComponent(document.getElementById('motivo').value || "");
             const metodo = encodeURIComponent(document.getElementById('metodo').value || "");
-            const token = encodeURIComponent(document.getElementById('token').value);
 
             btn.disabled = true;
             btn.innerText = "Enviando...";
             statusDiv.classList.add('hidden');
 
-            const urlFinal = `${WEB_APP_URL}?token=${token}&categoria=${categoria}&valor=${valor}&data=${data}&motivo=${motivo}&metodo=${metodo}`;
+            const urlFinal = `${WEB_APP_URL}?categoria=${categoria}&valor=${valor}&data=${data}&motivo=${motivo}&metodo=${metodo}`;
 
             try {
                 const response = await fetch(urlFinal);
@@ -132,7 +126,6 @@
                     document.getElementById('gastoForm').reset();
                     document.getElementById('data').value = new Date().toISOString().split('T')[0];
                     
-                    // Esconde a tabela de saldos velha se houver, para forçar o clique de atualização
                     document.getElementById('containerSaldo').classList.add('hidden');
                 } else {
                     statusDiv.innerText = `Erro: ${resultado.message} ❌`;
@@ -152,37 +145,28 @@
         // LÓGICA 2: BUSCAR SALDO ATUAL
         document.getElementById('btnSaldo').addEventListener('click', async () => {
             const btn = document.getElementById('btnSaldo');
-            const tokenInput = document.getElementById('token').value;
             const statusDiv = document.getElementById('status');
             const containerSaldo = document.getElementById('containerSaldo');
             const corpoTabela = document.getElementById('corpoTabelaSaldo');
-
-            if (!tokenInput) {
-                statusDiv.innerText = "Por favor, digite a Chave de Acesso no campo acima para ver o saldo. 🔑";
-                statusDiv.className = "mt-4 text-center p-3 rounded-lg text-sm font-semibold bg-amber-500/10 text-amber-400";
-                statusDiv.classList.remove('hidden');
-                return;
-            }
 
             btn.disabled = true;
             btn.innerText = "🔄 Consultando Planilha...";
             statusDiv.classList.add('hidden');
             containerSaldo.classList.add('hidden');
 
-            const urlConsulta = `${WEB_APP_URL}?token=${encodeURIComponent(tokenInput)}&acao=lerSaldo&_=${Date.now()}`;
+            const urlConsulta = `${WEB_APP_URL}?acao=lerSaldo`;
 
             try {
                 const response = await fetch(urlConsulta);
                 const resultado = await response.json();
 
                 if (resultado.status === "sucesso") {
-                    corpoTabela.innerHTML = ""; // Limpa dados anteriores
+                    corpoTabela.innerHTML = ""; 
                     
                     resultado.dados.forEach(item => {
                         const tr = document.createElement('tr');
                         tr.className = "hover:bg-slate-700/30 transition-colors";
                         
-                        // Define cores dependendo se o saldo está positivo ou negativo
                         const isNegVal = item.restante.includes('-');
                         const isNegAcum = item.acumulado.includes('-');
                         
