@@ -1,0 +1,10 @@
+cd "C:\Users\João Guilherme\OneDrive\Área de Trabalho\Arquivos Planilha Financeira"
+
+# 1. Prepara o arquivo index.html alterado para o envio
+git add index.html
+
+# 2. Cria o pacote da atualização explicando brevemente o que mudou
+git commit -m "update: descricao rápida da sua alteracao aqui"
+
+# 3. Faz o upload definitivo para o servidor do GitHub Pages
+git push origin main
